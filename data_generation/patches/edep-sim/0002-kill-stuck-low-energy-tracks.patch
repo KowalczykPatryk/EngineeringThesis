@@ -1,0 +1,91 @@
+diff --git a/src/EDepSimCreateRunManager.cc b/src/EDepSimCreateRunManager.cc
+index 7a69baf..3a922d0 100644
+--- a/src/EDepSimCreateRunManager.cc
++++ b/src/EDepSimCreateRunManager.cc
+@@ -4,6 +4,7 @@
+ #include "EDepSimUserEventAction.hh"
+ #include "EDepSimUserStackingAction.hh"
+ #include "EDepSimUserTrackingAction.hh"
++#include "EDepSimSteppingAction.hh"
+ #include "EDepSimDetectorMessenger.hh"
+ 
+ #include "EDepSimCreateRunManager.hh"
+@@ -31,6 +32,7 @@ G4RunManager* EDepSim::CreateRunManager(G4String physicsList) {
+     runManager->SetUserAction(new EDepSim::UserEventAction);
+     runManager->SetUserAction(new EDepSim::UserStackingAction);
+     runManager->SetUserAction(new EDepSim::UserTrackingAction);
++    runManager->SetUserAction(new EDepSim::SteppingAction);
+     
+     return runManager;
+ }
+diff --git a/src/EDepSimSteppingAction.hh b/src/EDepSimSteppingAction.hh
+new file mode 100644
+index 0000000..be68c22
+--- /dev/null
++++ b/src/EDepSimSteppingAction.hh
+@@ -0,0 +1,27 @@
++#ifndef EDepSim_SteppingAction_hh_seen
++#define EDepSim_SteppingAction_hh_seen
++
++#include <G4UserSteppingAction.hh>
++#include <globals.hh>
++
++class G4Step;
++
++namespace EDepSim {class SteppingAction;}
++
++/// Kill charged tracks stuck at negligible kinetic energy.  With Geant4 11.4
++/// low-energy nuclear recoils (e.g. Ar40 from neutron elastic scattering)
++/// can loop forever in ionIoni at ~1e-12 MeV, storing every step until the
++/// job runs out of memory.  Tracks below fMinKineticEnergy (default 1 keV,
++/// the Geant4 lowestMuHadEnergy default) or beyond fMaxSteps are stopped.
++class EDepSim::SteppingAction : public G4UserSteppingAction {
++public:
++    SteppingAction();
++    virtual ~SteppingAction();
++
++    void UserSteppingAction(const G4Step* step) override;
++
++private:
++    G4double fMinKineticEnergy;
++    G4int fMaxSteps;
++};
++#endif
+diff --git a/src/EDepSimSteppingAction.cc b/src/EDepSimSteppingAction.cc
+new file mode 100644
+index 0000000..dad5a64
+--- /dev/null
++++ b/src/EDepSimSteppingAction.cc
+@@ -0,0 +1,32 @@
++#include "EDepSimSteppingAction.hh"
++#include "EDepSimLog.hh"
++
++#include <G4Step.hh>
++#include <G4Track.hh>
++#include <G4ParticleDefinition.hh>
++#include <G4SystemOfUnits.hh>
++
++EDepSim::SteppingAction::SteppingAction()
++    : fMinKineticEnergy(1.*CLHEP::keV), fMaxSteps(1000000) {}
++
++EDepSim::SteppingAction::~SteppingAction() {}
++
++void EDepSim::SteppingAction::UserSteppingAction(const G4Step* step) {
++    G4Track* track = step->GetTrack();
++    if (track->GetTrackStatus() != fAlive) return;
++    if (track->GetDefinition()->GetPDGCharge() == 0.) return;
++
++    if (track->GetKineticEnergy() < fMinKineticEnergy) {
++        track->SetTrackStatus(fStopAndKill);
++        return;
++    }
++
++    if (track->GetCurrentStepNumber() > fMaxSteps) {
++        EDepSimError("Killing track " << track->GetTrackID()
++                     << " (" << track->GetDefinition()->GetParticleName()
++                     << ") after " << track->GetCurrentStepNumber()
++                     << " steps, KE " << track->GetKineticEnergy()/CLHEP::MeV
++                     << " MeV");
++        track->SetTrackStatus(fStopAndKill);
++    }
++}

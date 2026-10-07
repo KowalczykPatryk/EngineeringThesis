@@ -1,0 +1,20 @@
+[workspace]
+name = "lartpc-sim"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+root = ">=6.32"
+geant4 = ">=11"
+hdf5 = "*"
+yaml-cpp = "*"
+cmake = "*"
+make = "*"
+cxx-compiler = "*"
+pyyaml = "*"
+numpy = "*"
+h5py = "*"
+matplotlib = "*"
+pandas = "*"
+expat = ">=2.8.1,<3"

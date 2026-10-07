@@ -1,0 +1,168 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5891ed4..1b13470 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,7 +8,7 @@ message("Energy Deposition Simulation -- ${VERSION}")
+ 
+ # Define the options that can be set in the cache, or on the cmake
+ # command line.
+-set(CMAKE_BUILD_TYPE Debug)
++set(CMAKE_BUILD_TYPE RelWithDebInfo)
+ set(EDEPSIM_DISPLAY TRUE CACHE BOOL
+   "If true, compile the edep-disp event display")
+ set(EDEPSIM_READONLY FALSE CACHE BOOL
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index a8ad591..d3352bc 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -19,6 +19,7 @@ else(EDEPSIM_USE_NEST)
+   add_definitions(-DEDEPSIM_SKIP_NESTVersion098)
+ endif(EDEPSIM_USE_NEST)
+ 
++list(FILTER edep_source EXCLUDE REGEX ".*Bias\\.cc$")
+ set(source ${edep_source} ${captain_source} ${kinem_source} ${nest_source})
+ set(includes ${edep_includes} ${captain_includes} ${kinem_includes})
+ 
+diff --git a/src/EDepSimBuilder.cc b/src/EDepSimBuilder.cc
+index 7ab52b8..0417827 100644
+--- a/src/EDepSimBuilder.cc
++++ b/src/EDepSimBuilder.cc
+@@ -179,9 +179,9 @@ EDepSim::BuilderMessenger::~BuilderMessenger() {
+ G4VisAttributes EDepSim::Builder::GetColor(G4Material* mat, double opacity) {
+     EDepSim::RootGeometryManager* geoMan = EDepSim::RootGeometryManager::Get();
+     // Check if the opacity has been over-ruled by the macro...
+-    if (fOpacity < -9.9) return G4VisAttributes::Invisible;
++    if (fOpacity < -9.9) return G4VisAttributes::GetInvisible();
+     opacity += fOpacity;
+-    if (opacity < -9.9) return G4VisAttributes::Invisible;
++    if (opacity < -9.9) return G4VisAttributes::GetInvisible();
+     G4Color color = geoMan->GetG4Color(mat);
+     double red = color.GetRed();
+     double green = color.GetGreen();
+diff --git a/src/EDepSimPhysicsList.cc b/src/EDepSimPhysicsList.cc
+index a416a1b..b5fdb7b 100644
+--- a/src/EDepSimPhysicsList.cc
++++ b/src/EDepSimPhysicsList.cc
+@@ -23,9 +23,8 @@
+ #include <G4ProcessTable.hh>
+ 
+ #include <G4SystemOfUnits.hh>
++#include <G4UnitsTable.hh>
+ 
+-#include "QGSP_BERT_Bias.hh"
+-#include "G4HadronPhysicsQGSP_BERT_Bias.hh"
+ 
+ #include <unistd.h>
+ 
+@@ -51,15 +50,6 @@ EDepSim::PhysicsList::PhysicsList(G4String physName)
+         phys = factory.ReferencePhysList();
+     }
+     
+-    if (!phys && physName.size() > 1 && physName == "QGSP_BERT_Bias") {
+-      phys = new QGSP_BERT_Bias;
+-      G4HadronPhysicsQGSP_BERT_Bias * bias
+-          = (G4HadronPhysicsQGSP_BERT_Bias *)phys->GetPhysics(
+-              "hInelastic_pion_bias QGSP_BERT_Bias");
+-      char * bias_val = getenv("EDEPSIM_BIAS");
+-      if (bias_val)
+-        bias->SetPiPlusBias(std::atof(bias_val));
+-    }
+ 
+     // Check if a list name was provided on the command line.  It usually is
+     // not provided.
+diff --git a/src/EDepSimTrajectoryPoint.cc b/src/EDepSimTrajectoryPoint.cc
+index 5343fc3..ba0b5b7 100644
+--- a/src/EDepSimTrajectoryPoint.cc
++++ b/src/EDepSimTrajectoryPoint.cc
+@@ -133,7 +133,7 @@ std::vector<G4AttValue>* EDepSim::TrajectoryPoint::CreateAttValues() const {
+ 
+     values->push_back(G4AttValue("Momentum",
+                                  G4BestUnit(fMomentum,"Momentum"),""));
+-    values->push_back(G4AttValue("StepStatus",fStepStatus,""));
++    values->push_back(G4AttValue("StepStatus",std::to_string(static_cast<int>(fStepStatus)),""));
+ 
+     values->push_back(G4AttValue("PhysVolName",fPhysVolName,""));
+ 
+diff --git a/src/NESTVersion098/G4S1Light.cc b/src/NESTVersion098/G4S1Light.cc
+index 1ae2706..88bf309 100644
+--- a/src/NESTVersion098/G4S1Light.cc
++++ b/src/NESTVersion098/G4S1Light.cc
+@@ -136,7 +136,7 @@ G4S1Light::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
+         // scintillating material, and save Z for later L calculation, or
+         // return if no valid scintillators are found on this step, which is
+         // protection against G4Exception or seg. fault/violation
+-        G4Element *ElementA = NULL, *ElementB = NULL;
++        const G4Element *ElementA = NULL, *ElementB = NULL;
+         if (aMaterial && aMaterial->GetMaterialPropertiesTable()) {
+           const G4ElementVector* theElementVector1 =
+             aMaterial->GetElementVector();
+diff --git a/src/NESTVersion098/G4S2Light.cc b/src/NESTVersion098/G4S2Light.cc
+index cc563ed..d203dfa 100644
+--- a/src/NESTVersion098/G4S2Light.cc
++++ b/src/NESTVersion098/G4S2Light.cc
+@@ -108,7 +108,7 @@ G4S2Light::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
+ 	}
+ 	const G4ElementVector* theElementVector =
+ 	  aMaterial->GetElementVector();
+-	G4Element* Element = (*theElementVector)[0]; G4int z1;
++	const G4Element* Element = (*theElementVector)[0]; G4int z1;
+ 	if ( Element ) z1 = (G4int)(Element->GetZ()); else z1 = -1;
+ 	G4double z_anode = BORDER + GASGAP;
+ 	G4double z_start = BORDER;
+@@ -262,7 +262,7 @@ G4double G4S2Light::GetMeanFreePath(const G4Track& aTrack,
+   const G4Material* aMaterial = aTrack.GetMaterial();
+   if ( !aMaterial ) return DBL_MIN;
+   const G4ElementVector* theElementVector = aMaterial->GetElementVector();
+-  G4Element* Element = (*theElementVector)[0]; G4int z1;
++  const G4Element* Element = (*theElementVector)[0]; G4int z1;
+   if ( Element ) z1 = (G4int)(Element->GetZ()); else z1 = -1;
+   if ( (z1==2 || z1==10 || z1==18 || z1==36 || z1==54) &&
+        aMaterial->GetState() == kStateLiquid ) {
+diff --git a/src/captain/CaptCryostatBuilder.cc b/src/captain/CaptCryostatBuilder.cc
+index cca830e..a742bde 100644
+--- a/src/captain/CaptCryostatBuilder.cc
++++ b/src/captain/CaptCryostatBuilder.cc
+@@ -201,7 +201,7 @@ G4LogicalVolume *CaptCryostatBuilder::GetPiece(void) {
+                            coneMax.data()),
+             FindMaterial("Air"),
+             GetName());
+-    logVolume->SetVisAttributes(G4VisAttributes::Invisible);
++    logVolume->SetVisAttributes(G4VisAttributes::GetInvisible());
+ 
+ #define BUILD_OUTER_VESSEL
+ #ifdef BUILD_OUTER_VESSEL
+diff --git a/src/captain/CaptWirePlaneBuilder.cc b/src/captain/CaptWirePlaneBuilder.cc
+index b4b95bc..5e5888a 100644
+--- a/src/captain/CaptWirePlaneBuilder.cc
++++ b/src/captain/CaptWirePlaneBuilder.cc
+@@ -159,7 +159,7 @@ G4LogicalVolume *CaptWirePlaneBuilder::GetPiece(void) {
+                                             GetHeight()/2),
+                                   FindMaterial("Argon_Liquid"),
+                                   GetName()+"/Wire");
+-        logWire->SetVisAttributes(G4VisAttributes::Invisible);
++        logWire->SetVisAttributes(G4VisAttributes::GetInvisible());
+ 
+         if (GetSensitiveDetector()) {
+             logWire->SetSensitiveDetector(GetSensitiveDetector());
+diff --git a/src/captain/CaptWorldBuilder.cc b/src/captain/CaptWorldBuilder.cc
+index 1fdd351..490b002 100644
+--- a/src/captain/CaptWorldBuilder.cc
++++ b/src/captain/CaptWorldBuilder.cc
+@@ -95,7 +95,7 @@ G4LogicalVolume *CaptWorldBuilder::GetPiece(void) {
+                                         fHeight/2), 
+                               FindMaterial("Air"),
+                               GetName());
+-    logVolume->SetVisAttributes(G4VisAttributes::Invisible);
++    logVolume->SetVisAttributes(G4VisAttributes::GetInvisible());
+     
+     double floorThickness = 10*CLHEP::cm;
+     G4LogicalVolume *logFloor
+@@ -105,7 +105,7 @@ G4LogicalVolume *CaptWorldBuilder::GetPiece(void) {
+                                         floorThickness/2), 
+                               FindMaterial("Cement"),
+                               GetName()+"/Floor");
+-    logFloor->SetVisAttributes(G4VisAttributes::Invisible);
++    logFloor->SetVisAttributes(G4VisAttributes::GetInvisible());
+ 
+     CaptCryostatBuilder& cryo
+         = Get<CaptCryostatBuilder>("Cryostat");

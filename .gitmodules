@@ -1,0 +1,6 @@
+[submodule "edep-sim"]
+	path = data_generation/edep-sim
+	url = https://github.com/drinkingkazu/edep-sim
+[submodule "DLPGenerator"]
+	path = data_generation/DLPGenerator
+	url = https://github.com/DeepLearnPhysics/DLPGenerator

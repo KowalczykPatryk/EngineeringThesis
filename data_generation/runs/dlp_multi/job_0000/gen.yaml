@@ -1,0 +1,19 @@
+# DLP v0.1.0 "multiple particle" recipe: 2-5 particles, one vertex, isotropic.
+# YAML layout follows simlar generator/mpvmpr_ccmu.yaml (https://github.com/DeepLearnPhysics/simlar,
+# commit f8ba881; see SOURCES.md).
+# Ranges in GeV; UseMom False -> KERange is kinetic energy.
+# Vertex within +-700 mm so any 128 cm crop containing it lies inside the 4 m LAr cube.
+SEED: 1000
+Generator1:
+  NumEvent: [1,1]
+  NumParticle: [2,5]
+  XRange: [-700, 700]   # mm
+  YRange: [-700, 700]
+  ZRange: [-700, 700]
+  TRange: [0, 0]        # ns
+  AddParent: True
+  Particles:
+    - { PDG: [11,13],    NumRange: [0,3], KERange: [0.05,1.0], UseMom: False, Weight: 1 }
+    - { PDG: [22],       NumRange: [0,2], KERange: [0.05,1.0], UseMom: False, Weight: 1 }
+    - { PDG: [211,-211], NumRange: [0,2], KERange: [0.05,1.0], UseMom: False, Weight: 1 }
+    - { PDG: [2212],     NumRange: [0,3], KERange: [0.05,0.4], UseMom: False, Weight: 1 }
