@@ -16,6 +16,3 @@ runs/ccmu_test/
 runs/*/job_*/
 runs/*/plots/
 *.h5
-
-data_generation/DLPGenerator/
-data_generation/edep-sim/

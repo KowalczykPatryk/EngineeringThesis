@@ -32,19 +32,20 @@ The `$()` syntax tells shell to run the command inside the parentheses first and
 cd DLPGenerator
 source setup.sh
 make -j"$(nproc)"
-cd ..
+cd ../..
 ```
 #### 6. Apply local edep-sim patches
 ```bash
-git -C edep-sim apply --check ../patches/edep-sim/0001-geant4-11.4-compatibility.patch
-git -C edep-sim apply ../patches/edep-sim/0001-geant4-11.4-compatibility.patch
+git -C data_generation/edep-sim apply --check ../patches/edep-sim/0001-geant4-11.4-compatibility.patch
+git -C data_generation/edep-sim apply ../patches/edep-sim/0001-geant4-11.4-compatibility.patch
 
-git -C edep-sim apply --check ../patches/edep-sim/0002-kill-stuck-low-energy-tracks.patch
-git -C edep-sim apply ../patches/edep-sim/0002-kill-stuck-low-energy-tracks.patch
+git -C data_generation/edep-sim apply --check ../patches/edep-sim/0002-kill-stuck-low-energy-tracks.patch
+git -C data_generation/edep-sim apply ../patches/edep-sim/0002-kill-stuck-low-energy-tracks.patch
 ```
 #### 7. Make DLPGenerator/local paths visible
 ```bash
-source env.sh
+source data_generation/env.sh
+cd data_generation
 ```
 #### 8. Configure edep-sim
 ```bash
