@@ -79,16 +79,19 @@ which edep-sim
 ```
 where:  
 `0` - job ID  
-`100` - number of Geant4 events
-
-
-## edem-sim in nutshell
-
-edep-sim is a wrapper around Geant4: Geant4 performs the actual propagation/interactions of particles in matter, while edep-sim provides a ready-to-use application around it, with geometry loading, event generators, macro commands and persistence/output.
+`100` - number of Geant4 events  
+and make_job.sh is invoking run_edepsim.sh
 
 ## DLPGenerator in nutshell
 
-DLPGenerator is upstream's configurable synthetic particle-event generator: YAML describes interaction/particle content, positions, energies, etc.
+DLPGenerator is the initial event generator.
+It says what particles exist at the beginning of this simulated interaction.
+
+Its YAML configuration can define particle species, multiplicities, positions, kinetic energies, etc.It does not simulate all the subsequent interactions with liquid argon.
+
+## edem-sim in nutshell
+
+edep-sim is a wrapper around Geant4. Geant4 performs the actual propagation/interactions of particles in matter, while edep-sim provides a ready-to-use application around it, with geometry loading, event generators, macro commands and persistence/output.
 
 ## Simulation result
 The results of the simulations are placed in the `runs/dlp_multi/job_XXXX/` (XXXX is the job id) folder and stored in the edep.h5 file. The structure and content of edep.h5 file is described in the `insect_dataset/edep.md`.
@@ -109,24 +112,6 @@ uv run python plot_events.py runs/dlp_multi/job_0000/dlp.h5 runs/dlp_multi/plots
 ```
 
 Run both from the repository root (`plot_events.py` imports `lartpc_post`). PNGs are written to `runs/dlp_multi/plots/event_XXXXXX.png`. An optional 4th argument to `plot_events.py` sets the minimum deposited energy [MeV] for marking secondary tracks (default 5).
-
-### Using the arrays directly
-
-```python
-import h5py
-f = h5py.File("runs/dlp_multi/job_0000/dlp.h5")
-g = f["event_000000"]
-img   = g["image2d"][:]    # (3, 256, 256): planes XY, YZ, ZX; energy*100, pixels < 10 set to 0
-label = g["label2d"][:]    # (3, 256, 256): 0 background, 1 shower, 2 track
-vox   = g["voxels/coords"][:], g["voxels/energy"][:], g["voxels/label"][:]   # sparse 3D
-truth = g["particles"][:]  # per-particle table
-```
-
-`img[p][i, j]`: `i` runs along the first axis of the plane name and `j` along the second
-(for XY, `i` = x and `j` = y). Plot with `imshow(img[p].T, origin="lower")`.
-
-See `edep_h5_structure.md` for the layout of `edep.h5`, and the docstring of `lartpc_post.py`
-for the conventions used in `dlp.h5`.
 
 
 

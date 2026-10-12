@@ -824,3 +824,23 @@ How many elements inside each dataset (range of values):
 What are the ranges of values for each field (range of values):
 
 
+
+# Using the arrays directly
+
+```python
+import h5py
+f = h5py.File("runs/dlp_multi/job_0000/dlp.h5")
+g = f["event_000000"]
+img   = g["image2d"][:]    # (3, 256, 256): planes XY, YZ, ZX; energy*100, pixels < 10 set to 0
+label = g["label2d"][:]    # (3, 256, 256): 0 background, 1 shower, 2 track
+vox   = g["voxels/coords"][:], g["voxels/energy"][:], g["voxels/label"][:]   # sparse 3D
+truth = g["particles"][:]  # per-particle table
+```
+
+`img[p][i, j]`: `i` runs along the first axis of the plane name and `j` along the second
+(for XY, `i` = x and `j` = y). Plot with `imshow(img[p].T, origin="lower")`.
+
+See `edep_h5_structure.md` for the layout of `edep.h5`, and the docstring of `lartpc_post.py`
+for the conventions used in `dlp.h5`.
+
+

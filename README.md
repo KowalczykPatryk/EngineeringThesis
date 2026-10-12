@@ -11,4 +11,4 @@
 
 `uv sync` - to download all packages saved to lock file
 
-`uv run python -m gui.gui` - to run script as package
+`uv run python -m package_name.file` - to run script as package
