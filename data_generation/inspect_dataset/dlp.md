@@ -49,7 +49,7 @@ Minimum stored 2D pixel intensity - lower pixels become zero:
 # dlp.h5 file structure (event_000000):
 
 ```python
-event_000000: <HDF5 group "/event_000000" (4 members)>
+--- event_000000: <HDF5 group "/event_000000" (4 members)>
   keys: <KeysViewHDF5 ['image2d', 'label2d', 'particles', 'voxels']>
   attrs: {'crop_origin_mm': array([  23.82781021, -277.5767728 , -746.05935879]), 'event_id': np.int64(0), 'passed_threshold': np.True_, 'vertex_mm': array([ 454.05764771,  -85.21905518, -169.62496948])}
   crop_origin_mm - it is the lower corner of the 3D crop cube in original detector coordinates. This attribute is what enables convertion between detector coordinates and DLP voxel coordinates.
@@ -58,14 +58,14 @@ event_000000: <HDF5 group "/event_000000" (4 members)>
   vertex_mm - this is the position of the first Geant4 interaction vertex in the original detector coordinate system, not a voxel coordinate. If an event contained several vertices, this metadata stores only the position of the first one, and that is also the vertex used to choose the crop.
 
 
-event_000000/image2d: <HDF5 dataset "image2d": shape (3, 256, 256), type "<f4">
+--- event_000000/image2d: <HDF5 dataset "image2d": shape (3, 256, 256), type "<f4">
   3 - planes XY, YZ, ZX
   256 - first axis (ex. x in XY plane)
   256 - second axis (ex. y in XY plane)
   stores sum of the deposited energies * 100
 
 
-event_000000/label2d: <HDF5 dataset "label2d": shape (3, 256, 256), type "|u1">
+--- event_000000/label2d: <HDF5 dataset "label2d": shape (3, 256, 256), type "|u1">
   3 - planes XY, YZ, ZX
   256 - first axis (ex. x in XY plane)
   256 - second axis (ex. y in XY plane)
@@ -73,7 +73,7 @@ event_000000/label2d: <HDF5 dataset "label2d": shape (3, 256, 256), type "|u1">
   0 background, 1 shower, 2 track
 
 
-event_000000/particles: <HDF5 dataset "particles": shape (971,), type "|V237">
+--- event_000000/particles: <HDF5 dataset "particles": shape (971,), type "|V237">
   stores particles in format:
   [
 ('track_id', '<i4') - unique ID of this particle/track within the event.
@@ -123,17 +123,17 @@ event_000000/particles: <HDF5 dataset "particles": shape (971,), type "|V237">
 ('tree_de_in_crop', '<f4') - total deposited energy inside the crop from this particle plus all of its descendants, in MeV.
   ]
 
-event_000000/voxels: <HDF5 group "/event_000000/voxels" (3 members)>
+--- event_000000/voxels: <HDF5 group "/event_000000/voxels" (3 members)>
   keys: <KeysViewHDF5 ['coords', 'energy', 'label']>
   attrs: {}
 
-event_000000/voxels/coords: <HDF5 dataset "coords": shape (1472, 3), type "|u1">
+--- event_000000/voxels/coords: <HDF5 dataset "coords": shape (1472, 3), type "|u1">
   stores coordinates [x_voxel, y_voxel, z_voxel] of every occupied voxel inside the 256×256×256 crop. Each coordinate is an integer from 0 to 255. There are 1472 occupied voxels in this event.
 
-event_000000/voxels/energy: <HDF5 dataset "energy": shape (1472,), type "<f4">
+--- event_000000/voxels/energy: <HDF5 dataset "energy": shape (1472,), type "<f4">
   stores total deposited energy [MeV] in each occupied voxel. Energy deposits from all psteps falling into the same voxel are summed.
 
-event_000000/voxels/label: <HDF5 dataset "label": shape (1472,), type "|u1">
+--- event_000000/voxels/label: <HDF5 dataset "label": shape (1472,), type "|u1">
   stores the particle-class label of each occupied voxel: 1 = shower, 2 = track. If both shower and track deposits occur in the same voxel, label 2 (track) wins.
 
 ```
