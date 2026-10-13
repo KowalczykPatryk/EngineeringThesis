@@ -12,3 +12,10 @@
 `uv sync` - to download all packages saved to lock file
 
 `uv run python -m package_name.file` - to run script as package
+
+## Running ruff
+Lint code: `uv run ruff check .`  
+
+Fix lint errors: `uv run ruff check --fix .`  
+
+Format code: `uv run ruff format .`  
