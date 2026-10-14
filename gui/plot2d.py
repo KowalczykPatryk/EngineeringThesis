@@ -34,12 +34,14 @@ class Plot2D:
 
         # https://pyqtgraph.readthedocs.io/en/latest/api_reference/colormap.html#pyqtgraph.ColorMap.getLookupTable
         viridis_lut = viridis.getLookupTable(
-            start=0.0,
-            stop=1.0,
+            # from 0.0 to 1.0 means sample all of the colormap, from start to stop
+            start=0.0, # which part of the colormap is sampled (start)
+            stop=1.0, # which part of the colormap is sampled (stop)
             nPts=255,
             alpha=True,
         )
 
+        # shape means for each of the nPts, we have 4 values (RGBA)
         lut = np.empty((256, 4), dtype=np.ubyte)
 
         lut[0] = [255, 255, 255, 255]  # transparent white for background
@@ -51,8 +53,8 @@ class Plot2D:
         self.agents_item = pg.ImageItem(axisOrder="col-major")
         self.plot_widget.addItem(self.agents_item)
 
-        self.plot_widget.setLabel("bottom", f"{self.axis_1} pixels")
-        self.plot_widget.setLabel("left", f"{self.axis_2} pixels")
+        self.plot_widget.setLabel("bottom", f"{self.axis_1} axis")
+        self.plot_widget.setLabel("left", f"{self.axis_2} axis")
 
         self.plot_widget.setXRange(0, 256, padding=0)
         self.plot_widget.setYRange(0, 256, padding=0)

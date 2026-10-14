@@ -23,25 +23,30 @@ class Plot3D:
         coords = self._event["voxels/coords"][:]
         energy = self._event["voxels/energy"][:]
         # Converting NumPy array to PyVista point cloud
-        cloud = pv.PolyData(coords)
+        cloud = pv.PolyData(coords.astype(float))  # PyVista expects float coordinates
 
         # https://docs.pyvista.org/examples/00-load/create_point_cloud
         cloud["energy"] = energy  # Adding energy as a point data array
 
         # Draw points
+        # https://docs.pyvista.org/api/plotting/_autosummary/pyvista.plotter.add_mesh
+        # https://docs.pyvista.org/api/plotting/_autosummary/pyvista.plotter.add_scalar_bar
         self.plotter.add_mesh(
             cloud,
             scalars="energy",
             style="points",
             point_size=5,
-            render_points_as_spheres=True,
+            scalar_bar_args={
+                "title": "Energy [MeV]"
+                },
         )
 
         # Coordinate axes with numeric values
+        # https://docs.pyvista.org/api/plotting/_autosummary/pyvista.renderer.show_bounds
         self.plotter.show_grid(
-            xtitle="X voxel",
-            ytitle="Y voxel",
-            ztitle="Z voxel",
+            xtitle="X axis",
+            ytitle="Y axis",
+            ztitle="Z axis",
         )
 
         # Small XYZ orientation indicator at the bottom left corner of the window
