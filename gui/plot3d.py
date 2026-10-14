@@ -1,5 +1,6 @@
-from pyvistaqt import QtInteractor
 import pyvista as pv
+from pyvistaqt import QtInteractor
+
 
 class Plot3D:
     def __init__(self, event, parent):

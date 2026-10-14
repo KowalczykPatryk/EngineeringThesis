@@ -1,6 +1,8 @@
 import numpy as np
 import pyqtgraph as pg
+
 from reinforcement_learning.agents.agent2d import Agent2D
+
 
 class Plot2D:
     PROJECTIONS = (
@@ -15,6 +17,7 @@ class Plot2D:
         self.axis_1 = self.PROJECTIONS[projection_idx][1]
         self.axis_2 = self.PROJECTIONS[projection_idx][2]
                 
+        pg.setConfigOption("background", "w")
         self.plot_widget = pg.PlotWidget()
 
         self.plot_widget.setTitle(f"Image - {self.projection_name}")
@@ -22,7 +25,27 @@ class Plot2D:
 
         # col-major order is used to match the orientation of the image2d data
         self.image_item = pg.ImageItem(axisOrder="col-major")
+        # https://github.com/pyqtgraph/pyqtgraph/tree/master/pyqtgraph/colors/maps
+        # https://pyqtgraph.readthedocs.io/en/latest/api_reference/colormap.html#pyqtgraph.colormap.get
+        self.image_item.setColorMap(pg.colormap.get("viridis"))
         self.plot_widget.addItem(self.image_item)
+        
+        viridis = pg.colormap.get("viridis")
+
+        # https://pyqtgraph.readthedocs.io/en/latest/api_reference/colormap.html#pyqtgraph.ColorMap.getLookupTable
+        viridis_lut = viridis.getLookupTable(
+            start=0.0,
+            stop=1.0,
+            nPts=255,
+            alpha=True,
+        )
+
+        lut = np.empty((256, 4), dtype=np.ubyte)
+
+        lut[0] = [255, 255, 255, 255]  # transparent white for background
+        lut[1:] = viridis_lut
+
+        self.image_item.setLookupTable(lut)
 
         # col-major order is used to match the orientation of the image2d data
         self.agents_item = pg.ImageItem(axisOrder="col-major")
@@ -62,7 +85,8 @@ class Plot2D:
         images2d = self._event["image2d"][:]
 
         self.image = images2d[self.projection_idx]
-        self.image_item.setImage(self.image, autoLevels=True)
+        # The image is divided by 100 to match the scale of 3D plot
+        self.image_item.setImage(self.image / 100, autoLevels=True)
         self.update_agents_image()
         
     def move_agents(self):

@@ -5,7 +5,6 @@ import os
 os.environ["QT_API"] = "pyside6"
 
 import h5py
-import numpy as np
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
@@ -13,6 +12,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
 from gui.plot2d import Plot2D
 from gui.plot3d import Plot3D
 

@@ -14,6 +14,7 @@
 `uv run python -m package_name.file` - to run script as package
 
 ## Running ruff
+
 Lint code: `uv run ruff check .`  
 
 Fix lint errors: `uv run ruff check --fix .`  
