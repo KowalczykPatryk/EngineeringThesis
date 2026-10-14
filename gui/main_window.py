@@ -24,7 +24,6 @@ class MainWindow(QMainWindow):
         self.source_file_path = source_file_path
 
         self.setWindowTitle(window_title)
-        self.showMaximized()
 
         self.file = h5py.File(self.source_file_path, "r")
 
@@ -63,6 +62,7 @@ class MainWindow(QMainWindow):
 
         self.l2 = QVBoxLayout()
         self.l1.addLayout(self.l2)
+        self.l1.addStretch(1)
 
         self.plots2D = []
 
@@ -109,7 +109,6 @@ class MainWindow(QMainWindow):
         self.l4.addWidget(self.next_event_button)
         self.l4.addStretch(1)
 
-
         self.plot3d.show()
         for plot in self.plots2D:
             plot.show_image()
@@ -121,6 +120,8 @@ class MainWindow(QMainWindow):
             self.event_index = len(self.events_names) - 1
         elif self.event_index < 0:
             self.event_index = 0
+            
+        self.combo_box.setCurrentIndex(self.event_index)
 
         event_name = self.events_names[self.event_index]
         event = self.file[event_name]
@@ -130,6 +131,10 @@ class MainWindow(QMainWindow):
             plot.show_image()
         self.plot3d.event = event
         self.plot3d.show()
+        
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.plot3d.plotter.setMinimumWidth(event.size().width() // 2)
 
     def closeEvent(self, event):
         self.file.close()

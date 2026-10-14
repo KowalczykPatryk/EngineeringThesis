@@ -19,6 +19,16 @@ class Plot2D:
                 
         pg.setConfigOption("background", "w")
         self.plot_widget = pg.PlotWidget()
+        
+        view_box = self.plot_widget.getViewBox()
+        view_box.setMinimumSize(self.plot_widget.width() // 2, self.plot_widget.height() // 2)
+        view_box.setMaximumSize(self.plot_widget.width() // 2, self.plot_widget.height() // 2)
+        view_box.setAspectLocked(True)
+        view_box.setRange(
+            xRange=(0, 256),
+            yRange=(0, 256),
+            padding=0,
+        )
 
         self.plot_widget.setTitle(f"Image - {self.projection_name}")
         self.plot_widget.setAspectLocked(True)
@@ -27,10 +37,10 @@ class Plot2D:
         self.image_item = pg.ImageItem(axisOrder="col-major")
         # https://github.com/pyqtgraph/pyqtgraph/tree/master/pyqtgraph/colors/maps
         # https://pyqtgraph.readthedocs.io/en/latest/api_reference/colormap.html#pyqtgraph.colormap.get
-        self.image_item.setColorMap(pg.colormap.get("viridis"))
+        viridis = pg.colormap.get("viridis")
+        self.image_item.setColorMap(viridis)
         self.plot_widget.addItem(self.image_item)
         
-        viridis = pg.colormap.get("viridis")
 
         # https://pyqtgraph.readthedocs.io/en/latest/api_reference/colormap.html#pyqtgraph.ColorMap.getLookupTable
         viridis_lut = viridis.getLookupTable(
@@ -42,12 +52,33 @@ class Plot2D:
         )
 
         # shape means for each of the nPts, we have 4 values (RGBA)
-        lut = np.empty((256, 4), dtype=np.ubyte)
+        colors_lut = np.empty((256, 4), dtype=np.ubyte)
 
-        lut[0] = [255, 255, 255, 255]  # transparent white for background
-        lut[1:] = viridis_lut
+        colors_lut[0] = [255, 255, 255, 255]  # opaque white for background
+        colors_lut[1:] = viridis_lut
+        
+        positions = np.linspace(0.0, 1.0, 256)
 
-        self.image_item.setLookupTable(lut)
+        # https://pyqtgraph.readthedocs.io/en/latest/api_reference/colormap.html#pyqtgraph.ColorMap
+        # In this case, we are creating a custom colormap that starts with opaque white for the background and then transitions to the viridis colormap for the rest of the values
+        self.custom_cmap = pg.ColorMap(
+            positions,
+            colors_lut,
+        )
+        
+        # dividing colors by 256 was chosen randomly and could be any relatively big number
+
+        self.image_item.setColorMap(self.custom_cmap)
+        
+        # https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/plotitem.html
+        # https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/colorbaritem.html#pyqtgraph.ColorBarItem
+        self.color_bar = self.plot_widget.getPlotItem().addColorBar(
+            self.image_item,
+            colorMap=self.custom_cmap,
+            label="Energy [MeV]",
+            width=15,
+            interactive=False,
+        )
 
         # col-major order is used to match the orientation of the image2d data
         self.agents_item = pg.ImageItem(axisOrder="col-major")
@@ -87,8 +118,12 @@ class Plot2D:
         images2d = self._event["image2d"][:]
 
         self.image = images2d[self.projection_idx]
-        # The image is divided by 100 to match the scale of 3D plot
+        
+        self.color_bar.setLevels(values=(0, self.image.max() / 100))  # The image is divided by 100 to match the scale of 3D plot and true energy values
+        
+        # The image is divided by 100 to match the scale of 3D plot and true energy values
         self.image_item.setImage(self.image / 100, autoLevels=True)
+        
         self.update_agents_image()
         
     def move_agents(self):

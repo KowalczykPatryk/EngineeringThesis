@@ -8,6 +8,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     window = MainWindow(source_file_path="data_generation/runs/dlp_multi/job_0000/dlp.h5", window_title="LArTPC DLP viewer")
-    window.show()
+    window.showMaximized()
 
     sys.exit(app.exec())
