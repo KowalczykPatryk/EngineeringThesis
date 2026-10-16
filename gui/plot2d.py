@@ -19,19 +19,10 @@ class Plot2D:
                 
         pg.setConfigOption("background", "w")
         self.plot_widget = pg.PlotWidget()
-        
-        view_box = self.plot_widget.getViewBox()
-        view_box.setMinimumSize(self.plot_widget.width() // 2, self.plot_widget.height() // 2)
-        view_box.setMaximumSize(self.plot_widget.width() // 2, self.plot_widget.height() // 2)
-        view_box.setAspectLocked(True)
-        view_box.setRange(
-            xRange=(0, 256),
-            yRange=(0, 256),
-            padding=0,
-        )
+
 
         self.plot_widget.setTitle(f"Image - {self.projection_name}")
-        self.plot_widget.setAspectLocked(True)
+        #self.plot_widget.setAspectLocked(True)
 
         # col-major order is used to match the orientation of the image2d data
         self.image_item = pg.ImageItem(axisOrder="col-major")
@@ -41,7 +32,6 @@ class Plot2D:
         self.image_item.setColorMap(viridis)
         self.plot_widget.addItem(self.image_item)
         
-
         # https://pyqtgraph.readthedocs.io/en/latest/api_reference/colormap.html#pyqtgraph.ColorMap.getLookupTable
         viridis_lut = viridis.getLookupTable(
             # from 0.0 to 1.0 means sample all of the colormap, from start to stop
@@ -86,9 +76,14 @@ class Plot2D:
 
         self.plot_widget.setLabel("bottom", f"{self.axis_1} axis")
         self.plot_widget.setLabel("left", f"{self.axis_2} axis")
-
-        self.plot_widget.setXRange(0, 256, padding=0)
-        self.plot_widget.setYRange(0, 256, padding=0)
+        
+        plot_item = self.plot_widget.getPlotItem()
+        view_box = plot_item.getViewBox()       
+        view_box.setRange(
+            xRange=(0, 256),
+            yRange=(0, 256),
+            padding=0,
+        )
         
         self.agents = []
         for _ in range(len([particle for particle in self._event["particles"] if particle["is_primary"]])):
@@ -166,3 +161,39 @@ class Plot2D:
             overlay[i - 1 : i + 2, j - 1 : j + 2] = [255, 0, 0, 255]
 
         self.agents_item.setImage(overlay, autoLevels=False)
+        
+    def make_view_box_square(self):
+        plot_item = self.plot_widget.getPlotItem()
+        view_box = plot_item.getViewBox()
+        layout = plot_item.layout
+
+        # size = min(view_box.width(), view_box.height())
+
+        # # ViewBox is in row 2, column 1
+        # layout.setColumnFixedWidth(1, size)
+        # layout.setRowFixedHeight(2, size)
+
+        # layout.invalidate()
+        # layout.activate()
+
+        # self.plot_widget.setFixedWidth(
+        #     plot_item.width()
+        # )
+
+        # let the ViewBox row consume available vertical space.
+        layout.setRowStretchFactor(2, 1)
+
+        layout.invalidate()
+        layout.activate()
+
+        size = view_box.height()
+
+        layout.setColumnFixedWidth(1, size)
+
+        layout.invalidate()
+        layout.activate()
+        
+        self.plot_widget.setFixedWidth(
+            plot_item.width()
+        )
+        
