@@ -163,37 +163,38 @@ class Plot2D:
         self.agents_item.setImage(overlay, autoLevels=False)
         
     def make_view_box_square(self):
+        # some values needs to be calculated after the layout has been applied, so we need to wait until Qt has actually applied the new geometry of the layout
         plot_item = self.plot_widget.getPlotItem()
         view_box = plot_item.getViewBox()
         layout = plot_item.layout
-
-        # size = min(view_box.width(), view_box.height())
-
-        # # ViewBox is in row 2, column 1
-        # layout.setColumnFixedWidth(1, size)
-        # layout.setRowFixedHeight(2, size)
-
-        # layout.invalidate()
-        # layout.activate()
-
-        # self.plot_widget.setFixedWidth(
-        #     plot_item.width()
-        # )
-
-        # let the ViewBox row consume available vertical space.
+    
+        # row 2 should consume available vertical space
+        # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QGraphicsGridLayout.html#PySide6.QtWidgets.QGraphicsGridLayout.setRowStretchFactor
         layout.setRowStretchFactor(2, 1)
-
-        layout.invalidate()
-        layout.activate()
-
-        size = view_box.height()
-
-        layout.setColumnFixedWidth(1, size)
-
-        layout.invalidate()
-        layout.activate()
         
-        self.plot_widget.setFixedWidth(
-            plot_item.width()
+        def _finish_view_box_square(self):
+            plot_item = self.plot_widget.getPlotItem()
+            view_box = plot_item.getViewBox()
+            layout = plot_item.layout
+
+            size = view_box.height()
+
+            # now make ViewBox width equal to its final height
+            layout.setColumnFixedWidth(1, size)
+
+            layout.invalidate()
+            # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QGraphicsLayout.html#PySide6.QtWidgets.QGraphicsLayout.activate
+            # docs says to call invalidate before to clear any cached layout
+            layout.activate()
+            
+            # PlotWidget inherits QWidget
+            # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#PySide6.QtWidgets.QWidget.setFixedWidth
+            self.plot_widget.setFixedWidth(
+                plot_item.width()
+            )
+
+        # waiting until Qt has actually applied the new geometry of the layout
+        # https://pyqtgraph.readthedocs.io/en/latest/_modules/pyqtgraph/graphicsItems/ViewBox/ViewBox.html#ViewBox
+        view_box.sigResized.connect(
+            lambda: _finish_view_box_square(self)
         )
-        

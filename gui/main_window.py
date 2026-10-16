@@ -4,7 +4,6 @@ Layout of the application is visualized in the APP_LAYOUT.md file.
 '''
 
 import h5py
-from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
@@ -132,6 +131,8 @@ class MainWindow(QMainWindow):
             plot.show_image()
         self.plot3d.event = event
         self.plot3d.show()
+        
+    # https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QWidget.html#virtual-methods
         
     def resizeEvent(self, event):
         super().resizeEvent(event)
